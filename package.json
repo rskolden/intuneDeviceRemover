@@ -1,5 +1,5 @@
 {
-  "name": "intuneautopilotremover",
+  "name": "intune-device-remover",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -21,8 +21,8 @@
     "xlsx": "^0.18.5"
   },
   "build": {
-    "productName": "intune-autopilot-remover",
-    "appId": "com.skolden.intune-autopilot-remover",
+    "productName": "intune-device-remover",
+    "appId": "com.skolden.intune-device-remover",
     "directories": {
       "output": "dist"
     },
