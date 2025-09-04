@@ -4,3 +4,6 @@ dist/
 *.DS_Store
 output/
 tmp/
+.csv
+missing.csv
+success.csv
