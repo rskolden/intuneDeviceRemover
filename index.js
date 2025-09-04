@@ -41,9 +41,9 @@ function createWindow() {
 app.whenReady().then(() => {
   createWindow();
 
-  // Trigger check after window is ready
+  // Delay updater slightly so window is loaded
   setTimeout(() => {
-    autoUpdater.checkForUpdates();
+    autoUpdater.checkForUpdatesAndNotify();
   }, 2000);
 });
 
@@ -69,7 +69,6 @@ autoUpdater.on("download-progress", (progress) => {
 autoUpdater.on("update-downloaded", (info) => {
   console.log("Update downloaded:", info.version);
 
-  // Ask the user if they want to install
   dialog
     .showMessageBox(mainWindow, {
       type: "question",
