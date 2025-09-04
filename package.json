@@ -65,7 +65,8 @@
       {
         "provider": "github",
         "owner": "rskolden",
-        "repo": "intuneDeviceRemover"
+        "repo": "intuneDeviceRemover",
+        "releaseType": "release"
       }
     ]
   },
