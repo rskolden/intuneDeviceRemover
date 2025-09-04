@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Intune Autopilot Remover</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <!-- <div class="container d-flex flex-column align-items-center"> -->
+    <div class="container">
+      <div class="header mt-3 mb-2">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h1>Intune Autopilot Remover</h1>
+          <button id="exitButton" class="btn btn-danger my-1">Exit</button>
+        </div>
+      </div>
+      <div class="bg-dark-subtle p-3 mb-2">
+        <form>
+          <div class="form-group">
+            <label for="tenantInput" class="mb-0">Tenant ID</label>
+            <input type="text" class="form-control" id="tenantInput" />
+          </div>
+          <div class="form-group">
+            <label for="clientIdInput" class="mb-0">Client ID</label>
+            <input type="text" class="form-control" id="clientIdInput" />
+          </div>
+          <div class="form-group">
+            <label for="clientSecretInput" class="mb-0">Client Secret</label>
+            <input type="text" class="form-control" id="clientSecretInput" />
+          </div>
+        </form>
+        <div class="d-flex justify-content-start align-items-center">
+          <button id="connectionFile" class="btn btn-info my-2">Connection File</button>
+          <div id="label" class="mx-2">File selected:</div>
+          <div id="loadedConnectionFile" class="bg-dark-subtle"></div>
+        </div>
+      </div>
+      <div class="bg-dark-subtle p-3 mb-2">
+        <div class="form-group">
+          <label for="columnInput" class="mb-0">Column</label>
+          <input type="text" class="form-control" id="columnInput" />
+        </div>
+        <div class="d-flex justify-content-start align-items-center">
+          <button id="csvButton" class="btn btn-info my-2">CSV / XLSX</button>
+          <div id="label" class="mx-2">File selected:</div>
+          <div id="loadedFile" class="bg-dark-subtle"></div>
+        </div>
+      </div>
+      <div class="bg-dark-subtle p-3 mb-2">
+        <div class="d-flex justify-content-start align-items-center">
+          <button id="dryRunButton" class="btn btn-primary my-1" disabled>Dry run</button>
+          <button id="runButton" class="btn btn-success m-1" disabled>Run</button>
+          <button id="exportButton" class="btn btn-secondary my-1" disabled>Export</button>
+        </div>
+        <div class="d-flex justify-content-start align-items-center">
+          <button id="fetchTokenButton" class="btn btn-warning my-1">Fetch token</button>
+        </div>
+      </div>
+      <div class="bg-dark-subtle p-3 mb-2">
+        <div id="label">Log:</div>
+        <div id="logContainer" class="bg-light p-2" style="min-height: 100px"></div>
+      </div>
+    </div>
+    <script src="renderer.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
