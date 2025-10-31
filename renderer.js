@@ -1,164 +1,216 @@
-const loadedFile = document.getElementById("loadedFile");
-const logContainer = document.getElementById("logContainer");
-const loadedConnectionFile = document.getElementById("loadedConnectionFile");
-let tenantEl = document.getElementById("tenantInput");
-let clientidEl = document.getElementById("clientIdInput");
-let clientsecretEl = document.getElementById("clientSecretInput");
+// === ELEMENT SELECTORS ===
+const el = (id) => document.getElementById(id);
+const logContainer = el("logContainer");
 
-let serialNumbers = [];
-let exportedFile = null; // single file path
+const elements = {
+  loadedFile: el("loadedFile"),
+  loadedConnectionFile: el("loadedConnectionFile"),
+  currentVersion: el("currentVersion"),
+  updateSection: el("updateSection"),
+  progress: el("updateProgress"),
+  progressBar: el("updateProgressBar"),
+  columnInput: el("columnInput"),
+};
 
 const buttons = {
-  csv: document.getElementById("csvButton"),
-  connectionFile: document.getElementById("connectionFile"),
-  fetchToken: document.getElementById("fetchTokenButton"),
-  run: document.getElementById("runButton"),
-  dryRun: document.getElementById("dryRunButton"),
-  export: document.getElementById("exportButton"),
-  exit: document.getElementById("exitButton"),
+  csv: el("csvButton"),
+  connectionFile: el("connectionFile"),
+  checkToken: el("checkTokenButton"),
+  checkAppSecret: el("checkAppSecretButton"),
+  update: el("updateButton"),
+  run: el("runButton"),
+  dryRun: el("dryRunButton"),
+  export: el("exportButton"),
+  exit: el("exitButton"),
 };
 
-function toggleButtons(state, buttonNames = []) {
-  buttonNames.forEach((button) => {
-    if (buttons[button]) buttons[button].disabled = !state;
-    else console.error(`Button '${button}' not found.`);
+// === STATE ===
+let serialNumbers = [];
+let exportedFile = null;
+let currentVersion = "";
+let connectInfo = {}; // ← store connection info from JSON file
+
+// === HELPERS ===
+const logHandler = (msg, type = "log") => {
+  const div = document.createElement("div");
+  div.textContent = msg;
+  if (type === "alert") div.className = "alert alert-danger";
+  logContainer.appendChild(div);
+  logContainer.scrollTop = logContainer.scrollHeight;
+};
+
+const alertHandler = (msg) => logHandler(msg, "alert");
+const clearAlerts = () => [...logContainer.querySelectorAll(".alert")].forEach((a) => a.remove());
+
+const toggleButtons = (enabled, list = []) => {
+  list.forEach((name) => {
+    if (buttons[name]) buttons[name].disabled = !enabled;
   });
-}
-
-const logHandler = (message) => {
-  const line = document.createElement("div");
-  line.textContent = message;
-  logContainer.appendChild(line);
-  logContainer.scrollTop = logContainer.scrollHeight;
 };
 
-const alertHandler = (message) => {
-  const alertBox = document.createElement("div");
-  alertBox.className = "alert alert-danger";
-  alertBox.textContent = message;
-  logContainer.appendChild(alertBox);
-  logContainer.scrollTop = logContainer.scrollHeight;
-};
-
-const clearAlerts = () => {
-  const alerts = logContainer.querySelectorAll(".alert");
-  alerts.forEach((alert) => alert.remove());
-};
-
+// === MAIN FUNCTIONS ===
 async function loadCsv() {
-  const columnInput = document.getElementById("columnInput");
-  const columnName = columnInput ? columnInput.value.trim() : "";
+  const columnName = elements.columnInput?.value.trim();
+  if (!columnName) return alertHandler("Please enter a column name.");
 
-  if (!columnName) {
-    alertHandler("Please enter a column name to load serial numbers from.");
-    return;
-  }
+  const { filename, data } = await electron.invoke("load-csv-serialnumbers", columnName);
+  elements.loadedFile.textContent = filename || "No file loaded";
 
-  const { filePath, filename, data } = await electron.invoke("load-csv-serialnumbers", columnName);
-  loadedFile.textContent = filename || "No file loaded";
-  if (!data || !data.length) {
-    logHandler("No serial numbers found in the CSV file.");
-    return;
-  }
-
+  if (!data?.length) return logHandler("No serial numbers found.");
   serialNumbers = data.filter(Boolean);
-  logHandler(`Loaded ${serialNumbers.length} serial numbers from CSV file.`);
-  console.log("Serial Numbers:", serialNumbers);
+  console.log("Loaded serial numbers:", serialNumbers);
+  logHandler(`✅ Loaded ${serialNumbers.length} serial numbers.`);
   toggleButtons(true, ["dryRun", "run"]);
 }
 
 async function loadConnectionFile() {
   try {
-    const { filePath, filename, jsonData } = await electron.invoke("load-connection-file");
-    loadedConnectionFile.textContent = filename || "No file loaded";
+    const { filename, jsonData } = await electron.invoke("load-connection-file");
+    elements.loadedConnectionFile.textContent = filename || "No file loaded";
+
     if (jsonData) {
-      tenantEl.value = jsonData.tenant || "";
-      clientidEl.value = jsonData.clientId || "";
-      clientsecretEl.value = jsonData.clientSecret || "";
-      logHandler("Connection info loaded from file.");
+      connectInfo = {
+        tenant_name_or_id: jsonData.tenant_name_or_id || "",
+        client_id: jsonData.client_id || "",
+        client_secret: jsonData.client_secret || "",
+        client_secret_id: jsonData.client_secret_id || "",
+        object_id: jsonData.object_id || "",
+      };
+
+      logHandler("✅ Connection info loaded from file.");
+      console.log("Connection Info:", connectInfo);
+      toggleButtons(true, ["checkToken", "checkAppSecret"]);
     } else {
-      logHandler("No connection info found in the file.");
+      logHandler("No connection info found in file.");
     }
-  } catch (error) {
-    alertHandler(`Error loading connection file: ${error}`);
+  } catch (e) {
+    alertHandler(`Error loading connection file: ${e.message}`);
   }
 }
 
 async function processSerial(dryRun = false) {
-  tenantEl = document.getElementById("tenantInput");
-  clientidEl = document.getElementById("clientIdInput");
-  clientsecretEl = document.getElementById("clientSecretInput");
-
-  const connectInfo = {
-    tenant: tenantEl.value.trim(),
-    clientId: clientidEl.value.trim(),
-    clientSecret: clientsecretEl.value.trim(),
-  };
+  if (!serialNumbers.length) return alertHandler("No serial numbers loaded.");
+  if (!connectInfo.tenant_name_or_id || !connectInfo.client_id || !connectInfo.client_secret)
+    return alertHandler("Connection info missing. Load connection file first.");
 
   logHandler("------------------------------");
-  logHandler(dryRun ? "Starting dry run..." : "Starting serial processing...");
+  logHandler(dryRun ? "Starting dry run..." : "Starting processing...");
 
-  toggleButtons(false, ["dryRun", "run", "csv", "fetchToken"]);
+  toggleButtons(false, ["dryRun", "run", "csv", "checkToken"]);
 
   try {
-    const response = await electron.invoke("process-serials", { serialNumbers, connectInfo, dryRun });
-
-    if (response.error) {
-      alertHandler(`Error: ${response.error}`);
+    // Now we store data instead of a file
+    const res = await electron.invoke("process-serials", { serialNumbers, connectInfo, dryRun });
+    if (res.error) {
+      alertHandler(`Error: ${res.error}`);
     } else {
-      exportedFile = response.filePath; // single path instead of array
-      logHandler(`Results written to CSV: ${response.filePath}`);
+      exportedFile = res.data; // <-- store results as array
+      logHandler(`✅ Processed ${exportedFile.length} devices.`);
       toggleButtons(true, ["export"]);
       logHandler("Processing completed.");
     }
   } catch (err) {
     alertHandler(`Processing failed: ${err.message}`);
   } finally {
-    toggleButtons(true, ["dryRun", "run", "csv", "fetchToken"]);
+    toggleButtons(true, ["dryRun", "run", "csv", "checkToken"]);
+  }
+}
+// === VERSION & UPDATE ===
+async function checkCurrentVersion() {
+  currentVersion = await electron.invoke("get-app-version");
+  elements.currentVersion.textContent = currentVersion;
+}
+
+async function checkForUpdates() {
+  const latest = await electron.invoke("get-latest-update");
+  if (!latest?.version) return;
+  if (isNewerVersion(currentVersion, latest.version)) {
+    elements.updateSection.classList.remove("d-none");
+    buttons.update.textContent = `Update available: ${latest.version}`;
+  } else {
+    console.log("✅ Already up-to-date:", currentVersion);
   }
 }
 
-// async function exportData(title, data) {
-//   if (!title || !data) {
-//     console.error("Missing title or data for exportData");
-//     return;
-//   }
-//   const filePath = await electron.invoke("exportData", { title, data });
-//   exportedFiles.push(filePath);
-// }
+function isNewerVersion(curr, next) {
+  const a = curr.split(".").map(Number);
+  const b = next.split(".").map(Number);
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    if ((b[i] || 0) > (a[i] || 0)) return true;
+    if ((b[i] || 0) < (a[i] || 0)) return false;
+  }
+  return false;
+}
 
-buttons.fetchToken.addEventListener("click", async () => {
-  tenantEl = document.getElementById("tenantInput");
-  clientidEl = document.getElementById("clientIdInput");
-  clientsecretEl = document.getElementById("clientSecretInput");
-
-  const connectInfo = {
-    tenant: tenantEl.value.trim(),
-    clientId: clientidEl.value.trim(),
-    clientSecret: clientsecretEl.value.trim(),
-  };
-
-  console.log("Fetching token with connectInfo:", connectInfo);
-  await electron.invoke("fetch-token", connectInfo);
-});
-
+// === BUTTON HANDLERS ===
 buttons.csv.addEventListener("click", loadCsv);
-buttons.connectionFile.addEventListener("click", async () => loadConnectionFile());
+buttons.connectionFile.addEventListener("click", loadConnectionFile);
 buttons.run.addEventListener("click", () => processSerial(false));
 buttons.dryRun.addEventListener("click", () => processSerial(true));
 buttons.exit.addEventListener("click", () => electron.invoke("exit-app"));
 
 buttons.export.addEventListener("click", async () => {
+  if (!exportedFile || !exportedFile.length) return alertHandler("No results to export.");
+
   try {
-    const result = await electron.invoke("move-exported-files", exportedFile);
-    if (result.canceled) logHandler("Export file canceled.");
-    else logHandler(`Export file saved to: ${result.filePath}`);
-  } catch (err) {
-    alertHandler(`Failed to save export file: ${err.message}`);
+    const now = new Date();
+    const yyyyMMddHHmm = now.toISOString().replace(/[-:]/g, "").replace("T", "").slice(0, 12);
+
+    const defaultFileName = `results_${yyyyMMddHHmm}.csv`;
+
+    const { filePath, canceled } = await electron.invoke("save-exported-file", {
+      defaultFileName,
+      data: exportedFile,
+    });
+
+    if (!canceled) {
+      logHandler(`✅ Exported to: ${filePath}`);
+    } else {
+      logHandler("Export canceled.");
+    }
+  } catch (e) {
+    alertHandler(`Export failed: ${e.message}`);
   }
 });
 
-// Listen to backend messages
+buttons.checkToken.addEventListener("click", async () => {
+  if (!connectInfo.tenant_name_or_id || !connectInfo.client_id || !connectInfo.client_secret) {
+    return alertHandler("Tenant ID, App ID, and App Secret are required.");
+  }
+
+  try {
+    // Send the entire object
+    const token = await electron.invoke("fetch-token", connectInfo);
+    console.log("Access token:", token);
+    logHandler("✅ Token fetched successfully.");
+  } catch (err) {
+    alertHandler(`Failed to fetch token: ${err.message}`);
+  }
+});
+
+buttons.checkAppSecret.addEventListener("click", async () => {
+  const missing = Object.entries(connectInfo)
+    .filter(([_, v]) => !v)
+    .map(([k]) => k.replace(/_/g, " "));
+  if (missing.length) return alertHandler(`Missing required fields: ${missing.join(", ")}`);
+  const appSecret = await electron.invoke("check-app-secret", connectInfo);
+  if (appSecret.error) {
+    alertHandler(`Error: ${appSecret.error}`);
+  } else {
+    console.log("App Secret valid. Days until expiration:", appSecret);
+    logHandler(`✅ App Secret valid. Days until expiration: ${appSecret}`);
+  }
+});
+
+elements.columnInput.addEventListener("input", () => {
+  buttons.csv.disabled = !elements.columnInput.value.trim();
+});
+
+// === MESSAGE LISTENERS ===
 electron.receive("logging", logHandler);
 electron.receive("alert", alertHandler);
 electron.receive("clear-alerts", clearAlerts);
+
+// === INIT ===
+checkCurrentVersion();
+checkForUpdates();

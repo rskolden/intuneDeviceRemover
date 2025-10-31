@@ -14,17 +14,65 @@
   <body>
     <!-- <div class="container d-flex flex-column align-items-center"> -->
     <div class="container">
-      <div class="header mt-3 mb-2">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="header mt-3 mb-2">
           <h1>Intune Device Remover</h1>
-          <button id="exitButton" class="btn btn-danger my-1">Exit</button>
+          <strong id="currentVersion"></strong>
+        </div>
+        <div class="d-flex align-items-center justify-content-center gap-2">
+          <div class="mt-1" id="updateStatus"></div>
+          <div id="updateSection" class="d-none flex-grow-1">
+            <button id="updateButton" class="btn btn-warning me-2">Update</button>
+
+            <!-- Use Bootstrap progress component -->
+            <div class="progress mt-2 d-none" id="updateProgress">
+              <div class="progress-bar" role="progressbar" style="width: 0%" id="updateProgressBar"></div>
+            </div>
+
+            <!-- Status text -->
+          </div>
+
+          <button id="exitButton" class="btn btn-danger ms-2">Exit</button>
+        </div>
+      </div>
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center bg-dark-subtle">
+          <strong>How to create connection file</strong>
+          <button
+            class="btn btn-sm btn-link"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#connectionFileInstructions"
+            aria-expanded="true"
+            aria-controls="connectionFileInstructions"
+          >
+            Show / Hide
+          </button>
+        </div>
+        <div id="connectionFileInstructions" class="collapse card-body">
+          <p>
+            Create a <code>.json</code> file with the following content (replace with your own values) and select it as your
+            <strong>Connection File</strong>:
+          </p>
+
+          <pre><code>{
+  "tenant_name_or_id": "Name or ID of your Entra tenant",
+  "client_id": "Client ID of your app registration",
+  "client_secret": "Client secret value",
+  "client_secret_id": "Client secret ID",
+  "object_id": "Client object ID of your app registration"
+}</code></pre>
         </div>
       </div>
       <div class="bg-dark-subtle p-3 mb-2">
-        <form>
+        <!-- <form>
           <div class="form-group">
             <label for="tenantInput" class="mb-0">Tenant ID</label>
             <input type="text" class="form-control" id="tenantInput" />
+          </div>
+          <div class="form-group">
+            <label for="objectIdInput" class="mb-0">Object ID</label>
+            <input type="text" class="form-control" id="objectIdInput" />
           </div>
           <div class="form-group">
             <label for="clientIdInput" class="mb-0">Client ID</label>
@@ -34,9 +82,13 @@
             <label for="clientSecretInput" class="mb-0">Client Secret</label>
             <input type="text" class="form-control" id="clientSecretInput" />
           </div>
-        </form>
+          <div class="form-group">
+            <label for="clientSecretIdInput" class="mb-0">Client Secret ID</label>
+            <input type="text" class="form-control" id="clientSecretIdInput" />
+          </div>
+        </form> -->
         <div class="d-flex justify-content-start align-items-center">
-          <button id="connectionFile" class="btn btn-info my-2">Connection File</button>
+          <button id="connectionFile" class="btn btn-success my-2">Connection File</button>
           <div id="label" class="mx-2">File selected:</div>
           <div id="loadedConnectionFile" class="bg-dark-subtle"></div>
         </div>
@@ -47,19 +99,29 @@
           <input type="text" class="form-control" id="columnInput" />
         </div>
         <div class="d-flex justify-content-start align-items-center">
-          <button id="csvButton" class="btn btn-info my-2">CSV / XLSX</button>
+          <button id="csvButton" class="btn btn-success my-2" disabled>CSV / XLSX</button>
           <div id="label" class="mx-2">File selected:</div>
           <div id="loadedFile" class="bg-dark-subtle"></div>
         </div>
       </div>
       <div class="bg-dark-subtle p-3 mb-2">
-        <div class="d-flex justify-content-start align-items-center">
-          <button id="dryRunButton" class="btn btn-primary my-1" disabled>Dry run</button>
-          <button id="runButton" class="btn btn-success m-1" disabled>Run</button>
-          <button id="exportButton" class="btn btn-secondary my-1" disabled>Export</button>
-        </div>
-        <div class="d-flex justify-content-start align-items-center">
-          <button id="fetchTokenButton" class="btn btn-warning my-1">Fetch token</button>
+        <div class="row">
+          <!-- Left column -->
+          <div class="col-md-6 mb-2">
+            <div class="d-flex justify-content-start align-items-center flex-wrap">
+              <button id="dryRunButton" class="btn btn-primary my-1 me-2" disabled>Dry run</button>
+              <button id="runButton" class="btn btn-success my-1 me-2" disabled>Run</button>
+              <button id="exportButton" class="btn btn-secondary my-1" disabled>Export</button>
+            </div>
+          </div>
+
+          <!-- Right column -->
+          <div class="col-md-6 mb-2">
+            <div class="d-flex justify-content-start align-items-center flex-wrap">
+              <button id="checkTokenButton" class="btn btn-warning my-1 me-2" disabled>Check token</button>
+              <button id="checkAppSecretButton" class="btn btn-warning my-1" disabled>Check app secret</button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="bg-dark-subtle p-3 mb-2">

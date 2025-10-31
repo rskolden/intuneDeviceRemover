@@ -2,11 +2,10 @@
   "name": "intune-device-remover",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "electron-main.js",
   "scripts": {
     "start": "electron .",
-    "make": "electron-builder",
-    "publish": "electron-builder --publish=always"
+    "make": "electron-builder"
   },
   "keywords": [],
   "author": "",
@@ -17,26 +16,30 @@
     "axios": "^1.10.0",
     "csv-parser": "^3.2.0",
     "dotenv": "^16.5.0",
-    "electron-log": "^5.4.3",
-    "electron-updater": "^6.6.2",
     "xlsx": "^0.18.5"
   },
   "build": {
-    "productName": "intune-device-remover",
+    "productName": "Intune Device Remover",
     "appId": "com.skolden.intune-device-remover",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "assets"
     },
+    "files": [
+      "cli.js",
+      "electron-main.js",
+      "core.js",
+      "preload.js",
+      "renderer.js",
+      "index.html",
+      "assets/**/*",
+      "package.json"
+    ],
     "mac": {
+      "icon": "assets/managedClientSummaryReport.png",
       "target": [
         {
           "target": "dmg",
-          "arch": [
-            "arm64"
-          ]
-        },
-        {
-          "target": "zip",
           "arch": [
             "arm64"
           ]
@@ -47,13 +50,8 @@
       "gatekeeperAssess": false
     },
     "win": {
+      "icon": "assets/managedClientSummaryReport.png",
       "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        },
         {
           "target": "zip",
           "arch": [
@@ -61,20 +59,7 @@
           ]
         }
       ]
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": true,
-      "allowToChangeInstallationDirectory": true
-    },
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "rskolden",
-        "repo": "intuneDeviceRemover",
-        "releaseType": "release"
-      }
-    ]
+    }
   },
   "devDependencies": {
     "electron": "^37.1.0",
