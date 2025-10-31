@@ -36,7 +36,7 @@
       "package.json"
     ],
     "mac": {
-      "icon": "assets/managedClientSummaryReport.png",
+      "icon": "assets/intuneDeviceRemover.png",
       "target": [
         {
           "target": "dmg",
@@ -50,7 +50,7 @@
       "gatekeeperAssess": false
     },
     "win": {
-      "icon": "assets/managedClientSummaryReport.png",
+      "icon": "assets/intuneDeviceRemover.png",
       "target": [
         {
           "target": "zip",
